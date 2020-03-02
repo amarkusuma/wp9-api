@@ -48,23 +48,28 @@ add_action('rest_api_init', function () {
 });
 
 
-function post_testimonial($request)
+function post_testimonial(WP_REST_Request $request)
 {
-    $data = $request->get_params();
+
     $mypost = array(
-        'author' =>  $data['author'],
-        'content' => $data['content'],
-        'date' => $data['date'],
-        'rate' =>  $data['rate'],
+        'post_author' =>  $request['post_author'],
+        'post_content' => $request['post_content'],
+        'date' => $request['date'],
+        'rate' =>  $request['rate'],
+        'post_status' => 'publish'
     );
-    $data = new WP_Query($mypost);
-    return $data;
+
+    $pdata =   wp_insert_post($mypost);
+    return $pdata;
 }
+
 
 add_action('rest_api_init', function () {
     register_rest_route('wp9-api/v1', '/testimonial', array(
-        'methods' => 'POST',
+
         'callback' => 'post_testimonial',
+        'methods'   => WP_REST_Server::CREATABLE,
+
         'author' => array(
             'required' => true,
             'type' => 'string',
@@ -81,5 +86,44 @@ add_action('rest_api_init', function () {
             'required' => true,
             'type' => 'string',
         ),
+    ));
+});
+
+
+function delete_testimonial(WP_REST_Request $request)
+{
+
+    $id = $request['id'];
+    $data = wp_delete_post($id, true);
+    return $data;
+}
+
+add_action('rest_api_init', function () {
+    register_rest_route('wp9-api/v1', '/testimonial_delete/(?P<id>\d+)', array(
+        'methods' => WP_REST_Server::DELETABLE,
+        'callback' => 'delete_testimonial',
+
+    ));
+});
+
+
+function update_testimonial(WP_REST_Request $request)
+{
+
+    $my_post = array(
+        'ID'           => $request['id'],
+        'post_content'   => $request['post_content'],
+        'post_author'   => $request['post_author'],
+    );
+
+    $data = wp_update_post($my_post, true);
+    return $data;
+}
+
+add_action('rest_api_init', function () {
+    register_rest_route('wp9-api/v1', '/testimonial_update/(?P<id>\d+)', array(
+        'methods' => 'PATCH ',
+        'callback' => 'update_testimonial',
+
     ));
 });

@@ -48,22 +48,51 @@ add_action('rest_api_init', function () {
 
                 'callback' => 'post_testimonial',
                 'methods'   => WP_REST_Server::CREATABLE,
+                'args'  => array(
+                    'post_author' => array(
+                        'required' => true,
+                        'validate_callback' => function ($param) {
+                            if (!empty($param)) {
+                                return is_numeric($param);
+                            }
+                        }
 
-                'author' => array(
-                    'required' => true,
-                    'type' => 'string',
-                ),
-                'content' => array(
-                    'required' => true,
-                    'type' => 'string',
-                ),
-                'date' => array(
-                    'required' => true,
-                    'type' => 'date',
-                ),
-                'rate' => array(
-                    'required' => true,
-                    'type' => 'string',
+                    ),
+                    'post_content' => array(
+                        'required' => true,
+
+                        'validate_callback' => function ($param) {
+                            if (!empty($param)) {
+                                return is_string($param);
+                            }
+                        }
+
+                    ),
+                    'date' => array(
+                        'required' => true,
+                        'type' => 'date',
+                        'validate_callback' => function ($param) {
+                            if (!empty($param)) {
+                                return is_string($param);
+                            }
+                        }
+                    ),
+                    'rate' => array(
+                        'required' => true,
+                        'enum'  =>  array(
+                            '1',
+                            '2',
+                            '3',
+                            '4',
+                            '5'
+                        ),
+                        'validate_callback' => function ($param) {
+                            if (!empty($param)) {
+                                return is_numeric($param);
+                            }
+                        }
+                    ),
+
                 ),
             ),
         )
@@ -99,6 +128,7 @@ function update_testimonial(WP_REST_Request $request)
         'ID'           => $request['id'],
         'post_content'   => $request['post_content'],
         'post_author'   => $request['post_author'],
+        'post_status'   => 'publish',
     );
 
     $data = wp_update_post($my_post, true);
@@ -114,9 +144,11 @@ add_action('rest_api_init', function () {
             array(
                 'methods' => 'GET',
                 'callback' => 'get_testimonial_id',
-                'id' => array(
-                    'required' => true,
-                ),
+                'args' => array(
+                    'id' => array(
+                        'required' => true,
+                    ),
+                )
             ),
             array(
                 'methods' => WP_REST_Server::DELETABLE,

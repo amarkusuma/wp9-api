@@ -50,10 +50,12 @@ add_action('rest_api_init', function () {
                 'methods'   => WP_REST_Server::CREATABLE,
                 'args'  => array(
                     'post_author' => array(
-                        'required' => true,
+
                         'validate_callback' => function ($param) {
                             if (!empty($param)) {
                                 return is_numeric($param);
+                            } else {
+                                return false;
                             }
                         }
 
@@ -64,6 +66,8 @@ add_action('rest_api_init', function () {
                         'validate_callback' => function ($param) {
                             if (!empty($param)) {
                                 return is_string($param);
+                            } else {
+                                return false;
                             }
                         }
 
@@ -74,6 +78,8 @@ add_action('rest_api_init', function () {
                         'validate_callback' => function ($param) {
                             if (!empty($param)) {
                                 return is_string($param);
+                            } else {
+                                return false;
                             }
                         }
                     ),
@@ -89,6 +95,8 @@ add_action('rest_api_init', function () {
                         'validate_callback' => function ($param) {
                             if (!empty($param)) {
                                 return is_numeric($param);
+                            } else {
+                                return false;
                             }
                         }
                     ),

@@ -13,16 +13,61 @@ function get_testimonial($request)
     $mypost = array(
         'post_type' => 'wt9-testimonial',
         'posts_per_page' => $request['per_page'],
+        'paged' => $request['page'],
     );
     $data = new WP_Query($mypost);
-    return $data;
+
+    return $data->posts;
+}
+
+function post_testimonial(WP_REST_Request $request)
+{
+
+    $mypost = array(
+        'post_author'  =>  $request['post_author'],
+        'post_content' => $request['post_content'],
+        'date' => $request['date'],
+        'rate' =>  $request['rate'],
+        'post_type' => 'wt9-testimonial',
+    );
+
+    $pdata =   wp_insert_post($mypost, true);
+    return get_post($pdata);
 }
 
 add_action('rest_api_init', function () {
-    register_rest_route('wp9-api/v1', '/testimonial', array(
-        'methods' => 'GET',
-        'callback' => 'get_testimonial',
-    ));
+    register_rest_route(
+        'wp9-api/v1',
+        '/testimonial',
+        array(
+            array(
+                'methods' => 'GET',
+                'callback' => 'get_testimonial',
+            ),
+            array(
+
+                'callback' => 'post_testimonial',
+                'methods'   => WP_REST_Server::CREATABLE,
+
+                'author' => array(
+                    'required' => true,
+                    'type' => 'string',
+                ),
+                'content' => array(
+                    'required' => true,
+                    'type' => 'string',
+                ),
+                'date' => array(
+                    'required' => true,
+                    'type' => 'date',
+                ),
+                'rate' => array(
+                    'required' => true,
+                    'type' => 'string',
+                ),
+            ),
+        )
+    );
 });
 
 function get_testimonial_id($request)
@@ -32,62 +77,10 @@ function get_testimonial_id($request)
         // 'posts_per_page' => $request['per_page'],
         'p' => $request['id'],
     );
+
     $data = new WP_Query($mypost);
-    return $data;
+    return $data->posts;
 }
-
-add_action('rest_api_init', function () {
-    register_rest_route('wp9-api/v1', '/testimonial/(?P<id>\d+)', array(
-        'methods' => 'GET',
-        'callback' => 'get_testimonial_id',
-        'id' => array(
-            'required' => true,
-        ),
-
-    ));
-});
-
-
-function post_testimonial(WP_REST_Request $request)
-{
-
-    $mypost = array(
-        'post_author' =>  $request['post_author'],
-        'post_content' => $request['post_content'],
-        'date' => $request['date'],
-        'rate' =>  $request['rate'],
-        'post_status' => 'publish'
-    );
-
-    $pdata =   wp_insert_post($mypost);
-    return $pdata;
-}
-
-
-add_action('rest_api_init', function () {
-    register_rest_route('wp9-api/v1', '/testimonial', array(
-
-        'callback' => 'post_testimonial',
-        'methods'   => WP_REST_Server::CREATABLE,
-
-        'author' => array(
-            'required' => true,
-            'type' => 'string',
-        ),
-        'content' => array(
-            'required' => true,
-            'type' => 'string',
-        ),
-        'date' => array(
-            'required' => true,
-            'type' => 'date',
-        ),
-        'rate' => array(
-            'required' => true,
-            'type' => 'string',
-        ),
-    ));
-});
 
 
 function delete_testimonial(WP_REST_Request $request)
@@ -97,14 +90,6 @@ function delete_testimonial(WP_REST_Request $request)
     $data = wp_delete_post($id, true);
     return $data;
 }
-
-add_action('rest_api_init', function () {
-    register_rest_route('wp9-api/v1', '/testimonial_delete/(?P<id>\d+)', array(
-        'methods' => WP_REST_Server::DELETABLE,
-        'callback' => 'delete_testimonial',
-
-    ));
-});
 
 
 function update_testimonial(WP_REST_Request $request)
@@ -117,13 +102,33 @@ function update_testimonial(WP_REST_Request $request)
     );
 
     $data = wp_update_post($my_post, true);
-    return $data;
+    return get_post($data);
 }
 
-add_action('rest_api_init', function () {
-    register_rest_route('wp9-api/v1', '/testimonial_update/(?P<id>\d+)', array(
-        'methods' => 'PATCH ',
-        'callback' => 'update_testimonial',
 
-    ));
+add_action('rest_api_init', function () {
+    register_rest_route(
+        'wp9-api/v1',
+        '/testimonial/(?P<id>\d+)',
+        array(
+            array(
+                'methods' => 'GET',
+                'callback' => 'get_testimonial_id',
+                'id' => array(
+                    'required' => true,
+                ),
+            ),
+            array(
+                'methods' => WP_REST_Server::DELETABLE,
+                'callback' => 'delete_testimonial',
+
+            ),
+            array(
+                'methods' => 'PATCH ',
+                'callback' => 'update_testimonial',
+
+            )
+
+        )
+    );
 });
